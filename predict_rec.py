@@ -588,7 +588,7 @@ def main(args):
             res = text_recognizer([img] * int(args.rec_batch_num))
          
    
-    result_path = '/content/OCR-yolov5-SwinIR-SVTR/results'
+    result_path = '/content/OCR-Yolov5-SwinIR-SVTR/results'
     
     try:
         if not os.path.exists(result_path):
