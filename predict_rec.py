@@ -36,10 +36,10 @@ import time
 import traceback
 import paddle
 
-import .utility as utility
-from .postprocess import build_post_process
-from .logging import get_logger
-from .utils import get_image_file_list, check_and_read_gif
+import utility
+from utils.postprocess import build_post_process
+from utils.logging import get_logger
+from utils.utility import get_image_file_list, check_and_read_gif
 
 logger = get_logger()
 
