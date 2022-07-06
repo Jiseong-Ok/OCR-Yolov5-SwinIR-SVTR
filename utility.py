@@ -46,6 +46,7 @@ def init_args():
     parser.add_argument('--sr_model_path', type=str, default=None, help='')
     parser.add_argument('--yolo_model_path', type=str, default=None, help='')
     parser.add_argument('--font_path', type=str, default=None, help='')
+    parser.add_argument("--rec_model_dir", type=str, default=None, help='')
     
     # params for prediction engine
     parser.add_argument("--use_gpu", type=str2bool, default=True)
@@ -97,7 +98,6 @@ def init_args():
 
     # params for text recognizer
     parser.add_argument("--rec_algorithm", type=str, default='SVTR_LCNet')
-    parser.add_argument("--rec_model_dir", type=str)
     parser.add_argument("--rec_image_shape", type=str, default="3, 48, 320")
     parser.add_argument("--rec_batch_num", type=int, default=6)
     parser.add_argument("--max_text_length", type=int, default=25)
