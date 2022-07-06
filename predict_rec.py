@@ -40,8 +40,162 @@ import utility
 from utils.postprocess import build_post_process
 from utils.logging import get_logger
 from utils.utility import get_image_file_list, check_and_read_gif
+from swinir import SwinIR
 
 logger = get_logger()
+
+
+def sr(sr_model_path, image, scale = 4, window_size=8):
+
+    if sr_model_path is None:
+      
+      url = "https://drive.google.com/uc?id=1d1RwNhiyxVu7zkNcIReifcyg5wkVc-xv"
+      output = "003_realSR_BSRGAN_DFOWMFC_s64w8_SwinIR-L_x4_GAN.pth"
+
+      if not os.path.exists('/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output):
+        
+        sr_model_path = gdown.download(url, './pt_models/'+output, quiet=False)
+      sr_model_path = '/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output
+      
+        
+    else:
+      sr_model_path = sr_model_path
+
+    img_lq = image.astype(np.float32) / 255.
+    img_lq = np.transpose(img_lq if img_lq.shape[2] == 1 else img_lq[:, :, [2, 1, 0]], (2, 0, 1))  # HCW-BGR to CHW-RGB
+    img_lq = torch.from_numpy(img_lq).float().unsqueeze(0).to(device)  # CHW-RGB to NCHW-RGB
+
+    
+    
+    model = SwinIR(upscale=scale, in_chans=3, img_size=64, window_size=8,
+                            img_range=1., depths=[6, 6, 6, 6, 6, 6, 6, 6, 6], embed_dim=240,
+                            num_heads=[8, 8, 8, 8, 8, 8, 8, 8, 8],
+                            mlp_ratio=2, upsampler='nearest+conv', resi_connection='3conv')
+    param_key_g = 'params_ema'
+
+    pretrained_model = torch.load(sr_model_path)
+    model.load_state_dict(pretrained_model[param_key_g] if param_key_g in pretrained_model.keys() else pretrained_model, strict=True)
+
+    model.eval()
+    model = model.to(device)
+
+    with torch.no_grad():
+        # pad input image to be a multiple of window_size
+        _, _, h_old, w_old = img_lq.size()
+        h_pad = (h_old // window_size + 1) * window_size - h_old
+        w_pad = (w_old // window_size + 1) * window_size - w_old
+        img_lq = torch.cat([img_lq, torch.flip(img_lq, [2])], 2)[:, :, :h_old + h_pad, :]
+        img_lq = torch.cat([img_lq, torch.flip(img_lq, [3])], 3)[:, :, :, :w_old + w_pad]
+        output = model(img_lq) 
+        output = output[..., :h_old * scale, :w_old * scale]
+
+    # save image
+    output = output.data.squeeze().float().cpu().clamp_(0, 1).numpy()
+    if output.ndim == 3:
+        output = np.transpose(output[[2, 1, 0], :, :], (1, 2, 0))  # CHW-RGB to HCW-BGR
+    output = (output * 255.0).round().astype(np.uint8)  # float32 to uint8
+
+    return output
+
+
+def yolov5s_detect(yolo_model_path, image) :
+
+    if yolo_model_path is None:
+      
+      url = "https://drive.google.com/uc?id=10xmrzFfeRjVUWGS9onsuDkLrrRylrhLw"
+      output = "best_detection.pt"
+
+      if not os.path.exists('/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output):
+        
+        yolo_model_path = gdown.download(url, './pt_models/'+output, quiet=False)
+      yolo_model_path = '/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output
+      
+    else:
+      yolo_model_path = yolo_model_path
+
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path=yolo_model_path)
+
+
+    data_img = image
+
+    results = model(data_img)
+    print('탐지된 이미지의 수 : ',len(results.xyxy[0]))
+    
+    crop_images = []
+    for idx in range(len(results.xyxy[0])) :
+
+        xy = results.xyxy[0][idx].cpu().numpy()
+
+        start = (int(xy[1]),int(xy[0])) # y, x좌표 min값
+        end = (int(xy[3]),int(xy[2])) # y, x좌표 max값
+
+        output = np.zeros((end[0]-start[0], end[1]-start[1], 3), np.uint8)
+        # print(output.shape)
+
+        for y in range(output.shape[1]):
+            for x in range(output.shape[0]):
+                xp, yp = x + start[0], y+start[1]
+                output[x,y] = image[xp,yp]
+
+        # crop image
+        crop_image = np.asarray(output)
+ 
+        crop_images.append(crop_image)
+  
+        
+    return crop_images, results.xyxy[0]
+
+
+
+def img_blur_text(font_path, image, bboxs, texts, mag=30):
+  
+    if font_path is None:
+      
+      url = "https://drive.google.com/uc?id=17IK1YuODQxjJDQtVEqOF22EtvDh37wUs"
+      output = "NanumBarunGothic.ttf"
+
+      if not os.path.exists('/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output):
+        
+        font_path = gdown.download(url, './pt_models/'+output, quiet=False)
+      font_path = '/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output
+      
+    else:
+      font_path = font_path
+    
+    img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    
+    for bbox, text in zip(bboxs, texts):
+        x = int(bbox[0])
+        y = int(bbox[1])
+        x_ = int(bbox[2])
+        y_ = int(bbox[3])
+
+        roi = img[y:y_, x:x_]
+        roi = cv2.blur(roi, (mag, mag))
+        img[y:y_, x:x_] = roi
+
+        img_p = Image.fromarray(img)
+
+        text_size = int((bbox[3]-bbox[1])*0.9)
+
+        # 글자 위치
+        xs, ys = int(x*1.02), int(y*1.02)
+        text_pos = (xs, ys)
+
+        # 글자 타입 ( 글자 폰트, 글자 크기)
+        font_type = ImageFont.truetype(font_path, text_size)
+    
+        # 글자색
+        color = (0,0,0)
+
+        draw = ImageDraw.Draw(img_p)
+
+        draw.text(text_pos, text[0], color, font=font_type)
+        
+        img = np.array(img_p) 
+        # 텍스트가 쓰여진 이미지를 다시 배열로 바꿔서 for문을 돌 수 있게 사용
+
+    return img
 
 
 class TextRecognizer(object):
@@ -411,8 +565,7 @@ class TextRecognizer(object):
 def main(args):
     image_file_list = get_image_file_list(args.image_dir)
     text_recognizer = TextRecognizer(args)
-    valid_image_file_list = []
-    img_list = []
+    
 
     logger.info(
         "In PP-OCRv3, rec_image_shape parameter defaults to '3, 48, 320', "
@@ -423,28 +576,42 @@ def main(args):
         img = np.random.uniform(0, 255, [48, 320, 3]).astype(np.uint8)
         for i in range(2):
             res = text_recognizer([img] * int(args.rec_batch_num))
-
-    for image_file in image_file_list:
-        img, flag = check_and_read_gif(image_file)
-        if not flag:
-            img = cv2.imread(image_file)
-        if img is None:
-            logger.info("error in loading image:{}".format(image_file))
-            continue
-        valid_image_file_list.append(image_file)
-        img_list.append(img)
+         
+   
+    result_path = '/content/OCR-yolov5-SwinIR-SVTR/results'
+    
     try:
-        rec_res, _ = text_recognizer(img_list)
+        if not os.path.exists(result_path):
+            os.makedirs(result_path)
+    except OSError:
+        print("Error: Failed to create the directory.")
+        
 
-    except Exception as E:
-        logger.info(traceback.format_exc())
-        logger.info(E)
-        exit()
-    for ino in range(len(img_list)):
-        logger.info("Predicts of {}:{}".format(valid_image_file_list[ino],
-                                               rec_res[ino]))
-    if args.benchmark:
-        text_recognizer.autolog.report()
+    for file_name in image_file_list:
+        img = cv2.imread(args.image_dir+'/'+file_name)
+        crop_images, bboxs = yolov5s_detect(args.yolo_model_path, image = img)
+
+        texts = []
+        img_list = []
+        
+        for crop_image in crop_images:
+            sr_img = sr(args.sr_model_path, image = crop_image)
+            img_list.append(sr_img)
+        
+        try:
+            rec_res, _ = text_recognizer(img_list)
+        
+        except Exception as E:
+            logger.info(traceback.format_exc())
+            logger.info(E)
+            exit()
+            
+        for ino in range(len(img_list)):
+            logger.info("Predicts : {}".format(rec_res[ino]))
+        
+        if args.benchmark:
+            text_recognizer.autolog.report()
+            
 
 
 if __name__ == "__main__":
