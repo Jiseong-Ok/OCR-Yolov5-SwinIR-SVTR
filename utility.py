@@ -173,17 +173,25 @@ def create_predictor(args, mode, logger):
         model_dir = args.e2e_model_dir
 
     if model_dir is None:
-        logger.info("not find {} model file path {}".format(mode, model_dir))
-        sys.exit(0)
-    if args.use_onnx:
-        import onnxruntime as ort
-        model_file_path = model_dir
-        if not os.path.exists(model_file_path):
-            raise ValueError("not find model file path {}".format(
-                model_file_path))
-        sess = ort.InferenceSession(model_file_path)
-        return sess, sess.get_inputs()[0], None, None
+      
+      
+      url1 = ""
+      url2 = ''
+      url3 = ''
+      output1 = "inference.pdmodel"
+      output2 = ''
+      output3 = ''
 
+      if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output1):
+        
+        svtr_model_path1 = gdown.download(url1, './pt_models/'+output1, quiet=False)
+        svtr_model_path2 = gdown.download(url2, './pt_models/'+output2, quiet=False)
+        svtr_model_path3 = gdown.download(url3, './pt_models/'+output3, quiet=False)
+      svtr_model_path1 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output1
+      svtr_model_path2 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output2
+      svtr_model_path3 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output3
+    
+    
     else:
         model_file_path = model_dir + "/inference.pdmodel"
         params_file_path = model_dir + "/inference.pdiparams"
@@ -193,7 +201,8 @@ def create_predictor(args, mode, logger):
         if not os.path.exists(params_file_path):
             raise ValueError("not find params file path {}".format(
                 params_file_path))
-
+        
+        # 이걸 앞으로 빼고 위에서 none, 아닌거에 따라서 model_file_path랑 params_file_path 변수 지정해주면 될듯
         config = inference.Config(model_file_path, params_file_path)
 
         if hasattr(args, 'precision'):
@@ -334,6 +343,7 @@ def create_predictor(args, mode, logger):
         for name in input_names:
             input_tensor = predictor.get_input_handle(name)
         output_tensors = get_output_tensors(args, mode, predictor)
+      
         return predictor, input_tensor, output_tensors, config
 
 
