@@ -21,7 +21,7 @@ Original file is located at
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
+import utils.logging
 import os
 import imghdr
 import cv2
