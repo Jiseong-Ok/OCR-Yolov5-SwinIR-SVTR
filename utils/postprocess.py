@@ -31,7 +31,7 @@ import copy
 __all__ = ['build_post_process']
 
 
-from .rec_postprocess import CTCLabelDecode, AttnLabelDecode, SRNLabelDecode, \
+from rec_postprocess import CTCLabelDecode, AttnLabelDecode, SRNLabelDecode, \
     DistillationCTCLabelDecode, TableLabelDecode, NRTRLabelDecode, SARLabelDecode, \
     SEEDLabelDecode, PRENLabelDecode
 
