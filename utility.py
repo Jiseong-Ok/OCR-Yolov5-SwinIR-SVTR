@@ -32,7 +32,7 @@ from PIL import Image, ImageDraw, ImageFont
 import math
 from paddle import inference
 import time
-from utils.logging import get_logger
+from ocrutils.logging import get_logger
 
 
 def str2bool(v):
