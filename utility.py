@@ -41,6 +41,12 @@ def str2bool(v):
 
 def init_args():
     parser = argparse.ArgumentParser()
+    
+    # params for customize
+    parser.add_argument('--sr_model_path', type=str, default=None, help='')
+    parser.add_argument('--yolo_model_path', type=str, default=None, help='')
+    parser.add_argument('--font_path', type=str, default=None, help='')
+    
     # params for prediction engine
     parser.add_argument("--use_gpu", type=str2bool, default=True)
     parser.add_argument("--use_xpu", type=str2bool, default=False)
