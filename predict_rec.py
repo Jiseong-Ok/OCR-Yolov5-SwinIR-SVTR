@@ -47,13 +47,14 @@ import traceback
 import paddle
 
 import utility
-from utils.postprocess import build_post_process
-from utils.logging import get_logger
-from utils.utility import get_image_file_list, check_and_read_gif
+from ocrutils.postprocess import build_post_process
+from ocrutils.logging import get_logger
+from ocrutils.utility import get_image_file_list, check_and_read_gif
 from swinir import SwinIR
 
 logger = get_logger()
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 def sr(sr_model_path, image, scale = 4, window_size=8):
 
@@ -62,10 +63,10 @@ def sr(sr_model_path, image, scale = 4, window_size=8):
       url = "https://drive.google.com/uc?id=1d1RwNhiyxVu7zkNcIReifcyg5wkVc-xv"
       output = "003_realSR_BSRGAN_DFOWMFC_s64w8_SwinIR-L_x4_GAN.pth"
 
-      if not os.path.exists('/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output):
+      if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output):
         
         sr_model_path = gdown.download(url, './pt_models/'+output, quiet=False)
-      sr_model_path = '/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output
+      sr_model_path = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output
       
         
     else:
@@ -115,10 +116,10 @@ def yolov5s_detect(yolo_model_path, image) :
       url = "https://drive.google.com/uc?id=10xmrzFfeRjVUWGS9onsuDkLrrRylrhLw"
       output = "best_detection.pt"
 
-      if not os.path.exists('/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output):
+      if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output):
         
         yolo_model_path = gdown.download(url, './pt_models/'+output, quiet=False)
-      yolo_model_path = '/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output
+      yolo_model_path = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output
       
     else:
       yolo_model_path = yolo_model_path
@@ -164,10 +165,10 @@ def img_blur_text(font_path, image, bboxs, texts, mag=30):
       url = "https://drive.google.com/uc?id=17IK1YuODQxjJDQtVEqOF22EtvDh37wUs"
       output = "NanumBarunGothic.ttf"
 
-      if not os.path.exists('/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output):
+      if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output):
         
         font_path = gdown.download(url, './pt_models/'+output, quiet=False)
-      font_path = '/content/OCR-yolov5-SwinIR-STARNet/pt_models/'+output
+      font_path = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output
       
     else:
       font_path = font_path
@@ -598,7 +599,8 @@ def main(args):
         
 
     for file_name in image_file_list:
-        img = cv2.imread(args.image_dir+'/'+file_name)
+        
+        img = cv2.imread(file_name)
         crop_images, bboxs = yolov5s_detect(args.yolo_model_path, image = img)
 
         texts = []
