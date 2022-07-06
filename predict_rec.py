@@ -617,9 +617,16 @@ def main(args):
             logger.info(traceback.format_exc())
             logger.info(E)
             exit()
-            
+        
         for ino in range(len(img_list)):
-            logger.info("Predicts : {}".format(rec_res[ino]))
+            texts.append([rec_res[ino][0]])
+        
+        img_t = img_blur_text(args.font_path, image=img, bboxs=bboxs, texts=texts)
+
+        img_t = cv2.cvtColor(img_t, cv2.COLOR_BGR2RGB)
+        
+        cv2.imwrite(f'results/'+file_name.split('/')[-1], img_t)
+    
         
         if args.benchmark:
             text_recognizer.autolog.report()
