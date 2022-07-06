@@ -32,7 +32,9 @@ from PIL import Image, ImageDraw, ImageFont
 import math
 from paddle import inference
 import time
+import gdown
 from ocrutils.logging import get_logger
+
 
 
 def str2bool(v):
@@ -175,24 +177,25 @@ def create_predictor(args, mode, logger):
     if model_dir is None:
       
       
-      url1 = "https://drive.google.com/file/d/1-4g0WMYY9WUjChAHRn4_rpjkaLoX7HOq"
-      url2 = 'https://drive.google.com/file/d/1--8Z9Q0P8z30TXDs9J1SoRqfwzsXP5Ia'
-#       url3 = ''
-      output1 = "inference.pdmodel"
-      output2 = 'inference.pdiparams'
-#       output3 = ''
-
-      if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output1) or not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output2):
+        url1 = "https://drive.google.com/uc?id=1-4g0WMYY9WUjChAHRn4_rpjkaLoX7HOq"
+        url2 = 'https://drive.google.com/uc?id=1--8Z9Q0P8z30TXDs9J1SoRqfwzsXP5Ia'
         
-        svtr_model_path1 = gdown.download(url1, './pt_models/'+output1, quiet=False)
-        svtr_model_path2 = gdown.download(url2, './pt_models/'+output2, quiet=False)
-#         svtr_model_path3 = gdown.download(url3, './pt_models/'+output3, quiet=False)
-      svtr_model_path1 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output1
-      svtr_model_path2 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output2
-#       svtr_model_path3 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output3
+
+        output1 = "inference.pdmodel"
+        output2 = 'inference.pdiparams'
+        
+
+        if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output1) \
+            or not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output2):
+        
+            svtr_model_path1 = gdown.download(url1, '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output1, quiet=False)
+            svtr_model_path2 = gdown.download(url2, '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output2, quiet=False)
+            
+        svtr_model_path2 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output2
+       
       
-      model_file_path = svtr_model_path1
-      params_file_path = svtr_model_path2
+        model_file_path = svtr_model_path1
+        params_file_path = svtr_model_path2
     
     
     else:
