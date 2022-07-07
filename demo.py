@@ -23,6 +23,7 @@ Original file is located at
 import os
 import gdown
 import sys
+import time
 from PIL import Image, ImageDraw,ImageFilter, ImageFont
 __dir__ = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(__dir__)
@@ -131,7 +132,7 @@ def yolov5s_detect(yolo_model_path, image) :
 
     data_img = image
 
-    results = model(data_img)
+    results = model(data_img, size = 640)
     print('탐지된 이미지의 수 : ',len(results.xyxy[0]))
     
     crop_images = []
@@ -624,15 +625,24 @@ def main(args):
     for file_name in image_file_list:
         
         img = cv2.imread(file_name)
+        start = time.time()
         crop_images, bboxs = yolov5s_detect(args.yolo_model_path, image = img)
+        end = time.time()
+        text_detection = (end-start)
+        super_resolution = 0
+        text_recognition = 0
 
         texts = []
         img_list = []
         
         for crop_image in crop_images:
+            start = time.time()
             sr_img = sr(args.sr_model_path, image = crop_image)
             img_list.append(sr_img)
+            end = time.time()
+            super_resolution+=(end-start)
         
+        start = time.time()
         try:
             rec_res, _ = text_recognizer(img_list)
         
@@ -643,6 +653,9 @@ def main(args):
         
         for ino in range(len(img_list)):
             texts.append([rec_res[ino][0]])
+        end = time.time()
+        text_recognition = (end-start)
+        
         
         img_t = img_blur_text(args.font_path, image=img, bboxs=bboxs, texts=texts)
 
