@@ -37,6 +37,7 @@ import gdown
 
 import string
 import argparse
+import urllib.request
 
 import torch
 import torch.nn as nn
@@ -158,6 +159,27 @@ def yolov5s_detect(yolo_model_path, image) :
     return crop_images, results.xyxy[0]
 
 
+def translation(word):
+    client_id = "Dcp2cJmQxIOped1KPeD4" # 개발자센터에서 발급받은 Client ID 값
+    client_secret = "xCmMPfiKxM" # 개발자센터에서 발급받은 Client Secret 값
+    encText = urllib.parse.quote(word)
+    data = "source=ko&target=en&text=" + encText
+    url = "https://openapi.naver.com/v1/papago/n2mt"
+    request = urllib.request.Request(url)
+    request.add_header("X-Naver-Client-Id",client_id)
+    request.add_header("X-Naver-Client-Secret",client_secret)
+    response = urllib.request.urlopen(request, data=data.encode("utf-8"))
+    rescode = response.getcode()
+    if(rescode==200):
+        response_body = response.read()
+        test2 = response_body.decode('utf-8')
+        test3 = test2.split('translatedText":"')[1].split('","')[0]
+    else:
+        print("Error Code:" + rescode)
+        return word
+    return test3
+
+
 
 def img_blur_text(font_path, image, bboxs, texts, mag=30):
   
@@ -201,8 +223,8 @@ def img_blur_text(font_path, image, bboxs, texts, mag=30):
         color = (0,0,0)
 
         draw = ImageDraw.Draw(img_p)
-
-        draw.text(text_pos, text[0], color, font=font_type)
+        output = translation(text[0])
+        draw.text(text_pos, output, color, font=font_type)
         
         img = np.array(img_p) 
         # 텍스트가 쓰여진 이미지를 다시 배열로 바꿔서 for문을 돌 수 있게 사용
