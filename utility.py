@@ -190,7 +190,8 @@ def create_predictor(args, mode, logger):
         
             svtr_model_path1 = gdown.download(url1, '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output1, quiet=False)
             svtr_model_path2 = gdown.download(url2, '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output2, quiet=False)
-            
+        
+        svtr_model_path1 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output1
         svtr_model_path2 = '/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output2
        
       
