@@ -114,8 +114,8 @@ def yolov5s_detect(yolo_model_path, image) :
 
     if yolo_model_path is None:
       
-      url = "https://drive.google.com/uc?id=10xmrzFfeRjVUWGS9onsuDkLrrRylrhLw"
-      output = "best_detection.pt"
+      url = "https://drive.google.com/uc?id=10QsgZtVycx7i_6QtW_ly_NXZrTkVIPut"
+      output = "yolov5l_detection.pt"
 
       if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output):
         
