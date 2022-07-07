@@ -662,6 +662,10 @@ def main(args):
         img_t = cv2.cvtColor(img_t, cv2.COLOR_BGR2RGB)
         
         cv2.imwrite(f'results/'+file_name.split('/')[-1], img_t)
+        
+        print(f"Text Detection Spend Time : { text_detection :.5f} sec")
+        print(f"Super Resolution Spend Time : { super_resolution :.5f} sec")
+        print(f"Text Recognition Spend Time : { text_recognition :.5f} sec")
     
         
         if args.benchmark:
