@@ -59,12 +59,12 @@ logger = get_logger()
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-def sr(sr_model_path, image, scale = 4, window_size=8):
+def sr(sr_model_path, image, scale = 2, window_size=8):
 
     if sr_model_path is None:
       
-      url = "https://drive.google.com/uc?id=1d1RwNhiyxVu7zkNcIReifcyg5wkVc-xv"
-      output = "003_realSR_BSRGAN_DFOWMFC_s64w8_SwinIR-L_x4_GAN.pth"
+      url = "https://drive.google.com/uc?id=1RfN1HefvnF75p7fWy7cQRMrJquQvLjL0"
+      output = "003_realSR_BSRGAN_DFO_s64w8_SwinIR-M_x2_GAN"
 
       if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output):
         
@@ -82,9 +82,9 @@ def sr(sr_model_path, image, scale = 4, window_size=8):
     
     
     model = SwinIR(upscale=scale, in_chans=3, img_size=64, window_size=8,
-                            img_range=1., depths=[6, 6, 6, 6, 6, 6, 6, 6, 6], embed_dim=240,
-                            num_heads=[8, 8, 8, 8, 8, 8, 8, 8, 8],
-                            mlp_ratio=2, upsampler='nearest+conv', resi_connection='3conv')
+                            img_range=1., depths=[6, 6, 6, 6, 6, 6], embed_dim=180, 
+                            num_heads=[6, 6, 6, 6, 6, 6],
+                            mlp_ratio=2, upsampler='nearest+conv', resi_connection='1conv')
     param_key_g = 'params_ema'
 
     pretrained_model = torch.load(sr_model_path)
@@ -625,6 +625,7 @@ def main(args):
     for file_name in image_file_list:
         
         img = cv2.imread(file_name)
+        img_h_, img_w_ = img.shape[0], img.shape[1]
         start = time.time()
         crop_images, bboxs = yolov5s_detect(args.yolo_model_path, image = img)
         end = time.time()
@@ -636,8 +637,12 @@ def main(args):
         img_list = []
         
         for crop_image in crop_images:
+
             start = time.time()
-            sr_img = sr(args.sr_model_path, image = crop_image)
+            if img_h_ < 300 or img_w_ < 300:
+                sr_img = sr(args.sr_model_path, image = crop_image)
+            else:
+                sr_img = crop_image
             img_list.append(sr_img)
             end = time.time()
             super_resolution+=(end-start)
@@ -655,6 +660,7 @@ def main(args):
             texts.append([rec_res[ino][0]])
         end = time.time()
         text_recognition = (end-start)
+        
         
         
         img_t = img_blur_text(args.font_path, image=img, bboxs=bboxs, texts=texts)
