@@ -213,7 +213,7 @@ def img_blur_text(font_path, image, bboxs, texts, mag=30):
 
         img_p = Image.fromarray(img)
 
-        text_size = int((bbox[3]-bbox[1])*0.9)
+        text_size = int((bbox[3]-bbox[1])*0.7)
 
         # 글자 위치
         xs, ys = int(x*1.02), int(y*1.02)
