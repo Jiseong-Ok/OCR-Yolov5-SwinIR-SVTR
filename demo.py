@@ -226,7 +226,10 @@ def img_blur_text(font_path, image, bboxs, texts, mag=30):
         color = (0,0,0)
 
         draw = ImageDraw.Draw(img_p)
-        output = translation(text[0])
+        try:
+            output = translation(text[0])
+        except:
+            output = text[0]
         draw.text(text_pos, output, color, font=font_type)
         
         img = np.array(img_p) 
