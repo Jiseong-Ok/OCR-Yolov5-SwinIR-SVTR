@@ -128,6 +128,8 @@ def yolov5s_detect(yolo_model_path, image) :
       yolo_model_path = yolo_model_path
 
     model = torch.hub.load('ultralytics/yolov5', 'custom', path=yolo_model_path)
+    model.conf = 0.005
+    model.iou = 0.01
 
 
     data_img = image
