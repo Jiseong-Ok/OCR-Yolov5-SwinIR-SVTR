@@ -116,8 +116,8 @@ def yolov5s_detect(yolo_model_path, image) :
 
     if yolo_model_path is None:
       
-      url = "https://drive.google.com/uc?id=10QsgZtVycx7i_6QtW_ly_NXZrTkVIPut"
-      output = "yolov5l_detection.pt"
+      url = "https://drive.google.com/uc?id=1-50CEkvUt4djEVD4lLVRiKOWh6GckV2_"
+      output = "yolov5L6_detection.pt"
 
       if not os.path.exists('/content/OCR-Yolov5-SwinIR-SVTR/pt_models/'+output):
         
@@ -132,7 +132,7 @@ def yolov5s_detect(yolo_model_path, image) :
 
     data_img = image
 
-    results = model(data_img, size = 640)
+    results = model(data_img, size = 960)
     print('탐지된 이미지의 수 : ',len(results.xyxy[0]))
     
     crop_images = []
