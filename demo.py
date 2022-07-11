@@ -641,8 +641,10 @@ def main(args):
         for crop_image in crop_images:
 
             start = time.time()
-            if img_h_ < 300 or img_w_ < 300:
-                sr_img = sr(args.sr_model_path, image = crop_image)
+            img_h_, img_w_ = crop_image.shape[0], crop_image.shape[1]
+            
+            if img_h_ < 32 and img_w_ < 100 :
+                sr_img = sr(opt.sr_model_path, image = crop_image)
             else:
                 sr_img = crop_image
             img_list.append(sr_img)
